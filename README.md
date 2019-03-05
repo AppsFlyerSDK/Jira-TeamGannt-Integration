@@ -1,2 +1,2 @@
 JiraAndTeamGanntIntegration
-# Jira-BigGannt-Integration
+# Jira-TeamGannt-Integration
