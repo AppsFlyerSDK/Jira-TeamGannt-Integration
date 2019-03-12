@@ -24,9 +24,9 @@ def get_teamgantt_auth_token():
             # Load the config yaml file
             yaml_dict = yaml.load(stream)
 
-            token = yaml_dict['Auth']['TeamGannt']['App-Token']
-            email = yaml_dict['Auth']['TeamGannt']['EMail']
-            password = yaml_dict['Auth']['TeamGannt']['pass']
+            token = yaml_dict['Auth']['TeamGantt']['App-Token']
+            email = yaml_dict['Auth']['TeamGantt']['EMail']
+            password = yaml_dict['Auth']['TeamGantt']['pass']
 
             return token, email, password
         except yaml.YAMLError as exc:

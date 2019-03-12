@@ -16,15 +16,18 @@ class JiraClient:
         url = BASE_URL + "/rest/agile/1.0/board?maxResults=50&startAt=" + str(start_index)
         self.logger.print_log(url);
         resp = requests.get(url, headers=self.header)
-        print(resp.status_code)
         return resp
 
     def get_sprints_from_jira(self, board_id, start_index):
         # Call JIRA API Endpoint to obtain all the sprints in the board
         url = BASE_URL + "/rest/agile/1.0/board/" + board_id + "/sprint?maxResults=50&startAt=" + str(start_index)
         self.logger.print_log(url);
-        resp = requests.get(url, headers=self.header)
-        return resp
+        return requests.get(url, headers=self.header)
+
+    def get_tickets_from_sprint(self, sprint_id, board_id):
+        url = BASE_URL + "/rest/agile/1.0/board/" + str(board_id) + "/issue?jql=sprint=" + str(sprint_id)
+        self.logger.print_log(url)
+        return requests.get(url, headers=self.header)
 
 
 def set_auth_header():
