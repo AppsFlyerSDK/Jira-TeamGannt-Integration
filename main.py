@@ -84,7 +84,6 @@ def get_jira_tickets():
     get_active_sprints(boards)
 
     print(time_logger.elapsed_time())
-
     # 3. compare the tickets we got with our db
     new_tickets = compare_with_db(boards)
     # 4. add the new tickets to TeamGantt
@@ -124,7 +123,11 @@ def get_tickets_from_sprint(sprint_id, board_id):
             ticket_id = issue_obj['id']
             ticket_key = issue_obj['key']
             ticket_type = issue_obj['fields']['issuetype']['name']
-            ticket_epic = issue_obj['fields']['epic']['name'] if issue_obj['fields']['epic'] is not None else "none"
+            if issue_obj['fields']['epic'] is not None:
+                ticket_epic = issue_obj['fields']['epic']['name']
+            else:
+                # Get only tickets with epic!
+                continue
             if issue_obj['fields']['assignee'] is not None:
                 assignee = issue_obj['fields']['assignee']['displayName']
             else:
@@ -187,7 +190,7 @@ def get_active_sprints(boards_dict):
 
                 if is_last:
                     break
-                start_index = start_index + 50
+                start_index = start_index + MAX_RESULTS
                 # Get the next 50 sprints
                 resp = jira_client.get_sprints_from_jira(board_id, start_index)
 

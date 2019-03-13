@@ -25,20 +25,21 @@ class TeamGanttClient:
             # task_payload["parent_group_id"] = group_id
 
             # Look for epic
-            if ticket.ticket_epic in self.groups[ticket.team_name]['epics']:
+            if ticket.epic in self.groups[ticket.team_name]['epics']:
                 # Get epic group id
-                epic_group_id = self.groups[ticket.team_name]['epics'][ticket.ticket_epic]['epic_id']
+                epic_group_id = self.groups[ticket.team_name]['epics'][ticket.epic]
             else:
                 # Create a new group for the epic
-                epic_group_id = self.create_group(ticket, group_id)
+                epic_group_id = self.create_group(ticket.epic, group_id, ticket.team_name)
                 pass
         else:
             # Create a new group
-            group_id = self.create_group(ticket)
-            epic_group_id = self.create_group(ticket, group_id)
+            group_id = self.create_group(ticket.team_name)
+            epic_group_id = self.create_group(ticket.epic, group_id, ticket.team_name)
 
         task_payload['parent_group_id'] = epic_group_id
         resp = requests.post(url, data=json.dumps(task_payload), headers=self.headers)
+        print(url)
         return resp
 
     def get_resources(self):
@@ -90,20 +91,24 @@ class TeamGanttClient:
 
         resp = requests.post(url, data=json.dumps(resource_payload), headers=self.headers)
 
-    def create_group(self, ticket, epic_parent_id=None):
+    def create_group(self, group_name, epic_parent_id=None, team_name=None):
         url = BASE_URL + "/groups"
         group_payload = {'project_id': self.project_id,
-                         'name': ticket.team_name}
+                         'name': group_name}
 
         if epic_parent_id is not None:
             # Add parent group id
             group_payload['parent_group_id'] = epic_parent_id
-
-        resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
-        json_obj = utils.get_json(resp)
-        group_id = json_obj['id']
-        self.groups[ticket.team_name] = {'team_id': group_id,
-                                         'epics': {}}
+            resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
+            json_obj = utils.get_json(resp)
+            group_id = json_obj['id']
+            self.groups[team_name]['epics'][group_name] = group_id
+        else:
+            resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
+            json_obj = utils.get_json(resp)
+            group_id = json_obj['id']
+            self.groups[group_name] = {'team_id': group_id,
+                                       'epics': {}}
 
         return group_id
 
