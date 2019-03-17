@@ -19,12 +19,13 @@ def connect_to_db():
 
 def get_tickets_from_db():
     conn, cur, table_name = connect_to_db()
-    cur.execute("SELECT {}, {} FROM {}".format(constants.jira_id, constants.jira_last_update, table_name))
+    cur.execute("SELECT * FROM {}".format(table_name))
 
     rows = cur.fetchall()
-    tickets_ids = []
+    tickets_ids = {}
     for row in rows:
-        tickets_ids.append((row[0], row[1]))
+        tickets_ids[row[0]] = {"teamgantt_id": row[1],
+                               "jira_last_update": row[2]}
 
     cur.close()
     conn.close()
@@ -43,4 +44,17 @@ def write_ticket_to_db(ticket):
 
 
 def copy_csv_into_db():
-    return None
+    conn, cur, table_name = connect_to_db()
+    with open('gantt_ticket.csv', mode='r') as gantt_csv:
+        cur.copy_from(gantt_csv, table_name, sep=',')
+        conn.commit()
+
+    cur.close()
+    conn.close()
+    print('copy')
+
+    # cmd = 'COPY {}({},{},{} FROM STDIN WITH (FORMAT CSV, HEADER FALSE)'.format(table_name, constants.jira_id,
+    #                                                                            constants.teamgantt_id,
+    #                                                                            constants.jira_last_update)
+    # cur.copy_expert(cmd, gantt_csv)
+    # conn.commit()

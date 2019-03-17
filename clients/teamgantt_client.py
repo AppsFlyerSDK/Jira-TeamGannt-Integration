@@ -1,5 +1,4 @@
 import auth
-import requests
 import json
 import utils.utils as utils
 
@@ -38,28 +37,25 @@ class TeamGanttClient:
             epic_group_id = self.create_group(ticket.epic, group_id, ticket.team_name)
 
         task_payload['parent_group_id'] = epic_group_id
-        resp = requests.post(url, data=json.dumps(task_payload), headers=self.headers)
-        print(url)
-        return resp
+        # resp = requests.post(url, data=json.dumps(task_payload), headers=self.headers)
+        return utils.execute_url(url=url, method="post", headers=self.headers, body=task_payload)
 
     def get_resources(self):
         # API requests
-        url = BASE_URL + "/companies/" + str(utils.get_company_id()) + "/resources"
-        resp = requests.get(url, headers=self.headers)
-        json_obj = utils.get_json(resp)
+        url = BASE_URL + "/projects/" + str(utils.get_teamgantt_project_id()) + "/resources"
+        json_obj = utils.execute_url(url=url, method="get", headers=self.headers)
 
         resources_dict = {}
         # Iterate on all the resources and add them to the map
         for resource_json in json_obj:
-            name = resource_json['name'].lower().strip()
+            name = resource_json['name']
             id = resource_json['id']
             resources_dict[name] = id
         return resources_dict
 
     def get_groups(self):
         url = BASE_URL + "/groups?project_ids=" + str(self.project_id)
-        resp = requests.get(url, headers=self.headers)
-        json_obj = utils.get_json(resp)
+        json_obj = utils.execute_url(url=url, method="get", headers=self.headers)
 
         groups = {}
         for group_json in json_obj:
@@ -81,15 +77,18 @@ class TeamGanttClient:
                     groups[team_name]['epics'][epic_name]['stories'][story_name] = story_id
         return groups
 
-    def add_resource(self, task):
+    def add_resource_to_task(self, task):
         url = BASE_URL + "/tasks/" + str(task.task_id) + "/resources"
-        resource_payload = {'type': 'company'}
+        resource_payload = {'type': 'project'}
 
-        if task.assignee.lower().strip() in self.resources:
-            resource_id = self.resources[task.assignee.lower().strip()]
-            resource_payload['type_id'] = resource_id
+        if task.get_assignee() in self.resources:
+            resource_id = self.resources[task.get_assignee()]
+        else:
+            # Add resource to task
+            resource_id = self.add_to_project_resource_list(task)
 
-        resp = requests.post(url, data=json.dumps(resource_payload), headers=self.headers)
+        resource_payload['type_id'] = resource_id
+        utils.execute_url(url=url, method="post", headers=self.headers, body=resource_payload)
 
     def create_group(self, group_name, epic_parent_id=None, team_name=None):
         url = BASE_URL + "/groups"
@@ -99,18 +98,27 @@ class TeamGanttClient:
         if epic_parent_id is not None:
             # Add parent group id
             group_payload['parent_group_id'] = epic_parent_id
-            resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
-            json_obj = utils.get_json(resp)
+            # resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
+            json_obj = utils.execute_url(url=url, method="post", headers=self.headers, body=group_payload)
             group_id = json_obj['id']
             self.groups[team_name]['epics'][group_name] = group_id
         else:
-            resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
-            json_obj = utils.get_json(resp)
+            # resp = requests.post(url, data=json.dumps(group_payload), headers=self.headers)
+            json_obj = utils.execute_url(url=url, method="post", headers=self.headers, body=group_payload)
             group_id = json_obj['id']
             self.groups[group_name] = {'team_id': group_id,
                                        'epics': {}}
 
         return group_id
+
+    def add_to_project_resource_list(self, task):
+        resource_payload = {"type": "company",
+                            "name": task.get_assignee()}
+
+        url = BASE_URL + "/projects/" + str(self.project_id) + "/resources"
+        json_obj = utils.execute_url(url=url, method="post", headers=self.headers, body=resource_payload)
+        self.resources[task.get_assignee()] = json_obj['id']
+        return json_obj['id']
 
 
 def set_auth_header():
@@ -121,10 +129,9 @@ def set_auth_header():
 
     # send app_token to get api token and user token (create session)
     url = BASE_URL + "/authenticate"
-    resp = requests.post(url, data=json.dumps(auth_payload), headers=header)
+    json_obj = utils.execute_url(url=url, method="post", headers=header, body=auth_payload)
 
     # extract session api and user token
-    json_obj = utils.get_json(resp)
     api_key = json_obj['api_key']
     user_token = json_obj['user_token']
 

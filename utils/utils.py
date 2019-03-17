@@ -1,7 +1,8 @@
 import json
-from datetime import datetime
 import time
 import yaml
+import requests
+from utils.logger import *
 
 
 def get_json(resp):
@@ -52,3 +53,15 @@ def get_company_id():
             return teamgantt_company_id
         except yaml.YAMLError as exc:
             print(exc)
+
+
+def execute_url(url, method, headers, body=None):
+    if method == "get":
+        resp = requests.get(url, headers=headers)
+    elif method == "post":
+        resp = requests.post(url, data=json.dumps(body), headers=headers)
+    else:
+        raise Exception("Wrong method")
+
+    print_log("{}\t{}".format(method.upper(), url))
+    return get_json(resp)
