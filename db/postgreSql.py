@@ -1,11 +1,16 @@
 import psycopg2
 
-from utils import utils
+import config.config as config
 import constants
 
 
 def connect_to_db():
-    db_conn_str, db_user, db_password, db_name, db_scheme, db_table = utils.get_db_config_params()
+    db_conn_str = config.db_string
+    db_user = config.db_user
+    db_password = config.db_password
+    db_name = config.db_name
+    db_scheme = config.db_schema
+    db_table = config.db_table_name
     conn = psycopg2.connect(user=db_user,
                             dbname=db_name,
                             password=db_password,
@@ -53,8 +58,12 @@ def copy_csv_into_db():
     conn.close()
     print('copy')
 
-    # cmd = 'COPY {}({},{},{} FROM STDIN WITH (FORMAT CSV, HEADER FALSE)'.format(table_name, constants.jira_id,
-    #                                                                            constants.teamgantt_id,
-    #                                                                            constants.jira_last_update)
-    # cur.copy_expert(cmd, gantt_csv)
-    # conn.commit()
+
+def update_ticket_timestamp(jira_id, timestamp):
+    conn, cur, table_name = connect_to_db()
+    cur.execute(
+        "UPDATE {} SET jira_last_update = %s WHERE jira_id = %s".format(table_name), (timestamp, jira_id))
+    conn.commit()
+
+    cur.close()
+    conn.close()

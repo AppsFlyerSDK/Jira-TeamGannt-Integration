@@ -117,3 +117,6 @@ dmypy.json
 
 # Config file
 config/
+\.idea/workspace\.xml
+
+\.vscode/settings\.json

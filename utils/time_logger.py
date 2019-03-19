@@ -8,4 +8,9 @@ class TimeLogger:
 
     def elapsed_time(self):
         self.end = time.time()
-        return int((self.end - self.start)*1000)
+        milliseconds = int((self.end - self.start)*1000)
+
+        # pretty print the time elapsed
+        print("Elapsed time: {} Seconds".format(milliseconds/1000.0))
+
+        return milliseconds
