@@ -120,3 +120,5 @@ config/
 \.idea/workspace\.xml
 
 \.vscode/settings\.json
+
+\.idea/
