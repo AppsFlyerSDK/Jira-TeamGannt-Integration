@@ -11,7 +11,7 @@ def build_jira_ticket(issue_obj, team_name, jira_client):
         if issue_obj['fields']['epic'] is not None:
             ticket_epic = issue_obj['fields']['epic']['name']
         else:
-            ticket_epic = None
+            ticket_epic = "No Epic"
 
         if issue_obj['fields']['assignee'] is not None:
             assignee = issue_obj['fields']['assignee']['displayName']
@@ -25,6 +25,10 @@ def build_jira_ticket(issue_obj, team_name, jira_client):
         ticket_estimation_time = get_estimation_time(issue_obj)
         ticket_last_updated = utils.get_timestamp(issue_obj['fields']['updated'])
         if 'parent' in issue_obj['fields']:
+            parent_type = issue_obj['fields']['parent']['fields']['issuetype']['name']
+            if parent_type.lower() == 'technical story':
+                return None
+
             ticket_parent = issue_obj['fields']['parent']['fields']['summary']
             ticket_parent_id = issue_obj['fields']['parent']['id']
         else:

@@ -1,6 +1,6 @@
 import utils.time_logger as logger
 from config import config
-from utils import utils, jira_utils
+from utils import jira_utils, report
 from models.board import *
 from models.sprint import *
 from clients.jira_client import *
@@ -10,14 +10,14 @@ import csv
 import sys
 
 MAX_RESULTS = 50
-jira_client, teamgantt_client = None, None
+reporter = report.Report()
 
 
 def copy_jira_tickets_to_teamgantt():
     time_logger = logger.TimeLogger()  # log the time it takes to get all the boards
     # 1. get all boards
-    boards = get_boards()
-    # boards = {'181': Board(181, 'UX/UI', 'UX/UI')}
+    # boards = get_boards()
+    boards = {'173': Board(173, 'SDK', 'SDK')}
 
     # 2. for each board get all active sprints and their corresponded tickets
     for board_id in boards:
@@ -25,6 +25,7 @@ def copy_jira_tickets_to_teamgantt():
 
     # 3. compare the tickets we got with our db
     new_tickets, need_to_update_tickets = compare_with_db(boards)
+    utils.set_tickets_to_report(new_tickets, need_to_update_tickets)
 
     # 4.1 add the new tickets to TeamGantt
     add_new_tickets_to_teamgantt(new_tickets)
@@ -36,7 +37,8 @@ def copy_jira_tickets_to_teamgantt():
     # 6. copy csv into our db
     postgreSql.copy_csv_into_db()
 
-    print(time_logger.elapsed_time())
+    milli_elapsed = time_logger.elapsed_time()
+    utils.set_time_elapsed(milli_elapsed)
 
 
 def update_tickets_in_teamgantt(need_to_update_tickets):
@@ -70,7 +72,6 @@ def compare_with_db(boards):
                 # Check if the ticket is in our db
                 try:
                     if ticket_id in tickets:
-                        print(ticket_id)
                         # Check if the ticket was changed since last time
                         if ticket.ticket_jira_last_update > float(tickets[ticket_id]['jira_last_update']):
                             ticket.teamgantt_id = tickets[ticket_id]['teamgantt_id']
@@ -169,7 +170,7 @@ def extract_boards_from_json(obj, boards_dict):
     boards_json = obj['values']
     for board_json in boards_json:
         board_id = board_json['id']
-        if board_id == 168:
+        if board_id == 168 or board_id == 188:
             continue  # Ignore this specific board
 
         board_name = board_json['name']
@@ -193,6 +194,11 @@ def init():
     teamgantt_client = TeamGanttClient()
 
 
+def write_report():
+    utils.write_report()
+
+
 if __name__ == "__main__":
     init()
     copy_jira_tickets_to_teamgantt()
+    write_report()

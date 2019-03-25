@@ -74,10 +74,21 @@ class TeamGanttClient:
             self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
 
     def update_task(self, task):
+        if task.teamgantt_id == '':
+            return
+
         url = BASE_URL + "/tasks/" + str(task.teamgantt_id) + "?assigned_hours_set=total_hours_adjust"
         update_payload = teamgantt_utils.create_task_payload(task)
-        json_obj, status_code = utils.execute_url(url=url, method="patch", headers=self.headers, body=update_payload)
-        print(status_code)
+        _, status_code = utils.execute_url(url=url, method="post", headers=self.headers, body=update_payload)
+        # Todo - update task assignee
+        get_task_url = BASE_URL + "/tasks/" + task.teamgantt_id
+        json_obj, status_code = utils.execute_url(url=get_task_url, method="get", headers=self.headers)
+
+        if task.get_assignee() == json_obj['resources'][0]['name']:
+            return
+
+        resource_id, _ = self.get_resource_for_task(task)
+        self.update_resource_for_task(task.teamgantt_id, resource_id, json_obj['resources'][0]['id'])
 
     def add_task_and_resource_to_teamgantt(self, task_payload, ticket, url):
         resource_id, task_resource = self.get_resource_for_task(ticket)
@@ -154,6 +165,8 @@ class TeamGanttClient:
                 group_id = json_obj['id']
             else:
                 print('none')
+                return
+
             if is_epic:
                 group_dict[group_name] = {'epic_id': group_id,
                                           'stories': {}}
@@ -189,6 +202,15 @@ class TeamGanttClient:
 
         task.resource = self.resources[task.get_assignee()]
         return resource_id, self.resources[task.get_assignee()]
+
+    def update_resource_for_task(self, task_id, new_resource_id, old_resource_id):
+        url = BASE_URL + "/tasks/" + str(task_id) + "/resources"
+        delete_url = url + "/" + str(old_resource_id)
+        _, status_code_delete = utils.execute_url(url=delete_url, method='delete', headers=self.headers)
+        update_payload = {'type': 'project',
+                          'type_id': new_resource_id}
+        _, status_code = utils.execute_url(url=url, method="post", headers=self.headers, body=update_payload)
+        return status_code
 
 
 def set_auth_header():

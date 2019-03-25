@@ -6,14 +6,12 @@ def create_task_payload(ticket, parent_group_id=-1, project_id=-1):
     name = ticket.ticket_summary
     percent_complete = determine_percent_complete(ticket.ticket_status)
     color = determine_task_color(ticket.ticket_type)
-    type = 'task'
-    start_date = ''
-    end_date = ''
+    task_type = 'task'
 
     task_payload = {'name': name,
                     'percent_complete': percent_complete,
                     'color': color,
-                    'type': type}
+                    'type': task_type}
 
     if parent_group_id != -1:
         task_payload['parent_group_id'] = parent_group_id
@@ -42,7 +40,7 @@ def calculate_end_date(start_date_str, ticket_estimation_time):
 def add_time_to_task(task_payload, task):
     start_date = task.resource.cur_date
     end_date, cur_date = calculate_end_date(start_date, task.ticket_estimation_time)
-    task.resource.cur_date = cur_date
+    # task.resource.cur_date = cur_date
 
     task_payload['start_date'] = start_date
     task_payload['end_date'] = end_date
@@ -76,4 +74,4 @@ def determine_task_color(ticket_type):
         return 'purple1'
     if ticket_type.lower() == 'bug (int r&d)':
         return 'green1'
-    return 'blue1'
+    return 'blue2'
