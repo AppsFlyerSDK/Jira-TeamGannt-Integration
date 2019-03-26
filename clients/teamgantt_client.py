@@ -16,62 +16,66 @@ class TeamGanttClient:
         self.sprint_start_date = None
 
     def create_task(self, ticket, group_id=-1):
-        url = BASE_URL + "/tasks"
+        try:
+            url = BASE_URL + "/tasks"
 
-        if group_id != -1:
-            # It's a subtask
-            task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=group_id,
-                                                               project_id=self.project_id)
-            self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
-            return
-        else:
-            # Get group id
-            if ticket.team_name in self.groups:
-                # Group already created
-                group_id = self.groups[ticket.team_name]['team_id']
+            if group_id != -1:
+                # It's a subtask
+                task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=group_id,
+                                                                   project_id=self.project_id)
+                self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
+                return
+            else:
+                # Get group id
+                if ticket.team_name in self.groups:
+                    # Group already created
+                    group_id = self.groups[ticket.team_name]['team_id']
 
-                # Look for epic
-                if ticket.epic in self.groups[ticket.team_name]['epics']:
-                    # Get epic group id
-                    epic_group_id = self.groups[ticket.team_name]['epics'][ticket.epic]['epic_id']
+                    # Look for epic
+                    if ticket.epic in self.groups[ticket.team_name]['epics']:
+                        # Get epic group id
+                        epic_group_id = self.groups[ticket.team_name]['epics'][ticket.epic]['epic_id']
+                    else:
+                        if ticket.epic is None:
+                            # A ticket without epic
+                            task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=group_id,
+                                                                               project_id=self.project_id)
+                            self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
+                            return
+                        else:
+                            # Create a new group for the epic
+                            epic_group_id = self.create_group(ticket.epic, self.groups[ticket.team_name]['epics'], group_id,
+                                                              is_epic=True)
                 else:
+                    # Create a new group
+                    group_id = self.create_group(ticket.team_name, self.groups)
+
                     if ticket.epic is None:
-                        # A ticket without epic
+                        # In case that the ticket has no epic, add it to the team group
                         task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=group_id,
                                                                            project_id=self.project_id)
                         self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
                         return
-                    else:
-                        # Create a new group for the epic
-                        epic_group_id = self.create_group(ticket.epic, self.groups[ticket.team_name]['epics'], group_id,
-                                                          is_epic=True)
-            else:
-                # Create a new group
-                group_id = self.create_group(ticket.team_name, self.groups)
 
-                if ticket.epic is None:
-                    # In case that the ticket has no epic, add it to the team group
-                    task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=group_id,
-                                                                       project_id=self.project_id)
-                    self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
+                    epic_group_id = self.create_group(ticket.epic, self.groups[ticket.team_name]['epics'], group_id,
+                                                      is_epic=True)
+
+                # Check if the task have sub tasks, if it have any make it a group and call the method again for the subtasks
+                if len(ticket.ticket_subtasks) > 0:
+                    parent_group_id = self.create_group(ticket.ticket_summary,
+                                                        self.groups[ticket.team_name]['epics'][ticket.epic]['stories'],
+                                                        epic_group_id)
+                    for sub_task in ticket.ticket_subtasks:
+                        self.create_task(sub_task, parent_group_id)
+
                     return
 
-                epic_group_id = self.create_group(ticket.epic, self.groups[ticket.team_name]['epics'], group_id,
-                                                  is_epic=True)
+                task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=epic_group_id,
+                                                                   project_id=self.project_id)
+                self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
 
-            # Check if the task have sub tasks, if it have any make it a group and call the method again for the subtasks
-            if len(ticket.ticket_subtasks) > 0:
-                parent_group_id = self.create_group(ticket.ticket_summary,
-                                                    self.groups[ticket.team_name]['epics'][ticket.epic]['stories'],
-                                                    epic_group_id)
-                for sub_task in ticket.ticket_subtasks:
-                    self.create_task(sub_task, parent_group_id)
-
-                return
-
-            task_payload = teamgantt_utils.create_task_payload(ticket, parent_group_id=epic_group_id,
-                                                               project_id=self.project_id)
-            self.add_task_and_resource_to_teamgantt(task_payload, ticket, url)
+        except Exception as ex:
+            print(ex)
 
     def update_task(self, task):
         if task.teamgantt_id == '':

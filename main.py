@@ -16,8 +16,8 @@ reporter = report.Report()
 def copy_jira_tickets_to_teamgantt():
     time_logger = logger.TimeLogger()  # log the time it takes to get all the boards
     # 1. get all boards
-    # boards = get_boards()
-    boards = {'173': Board(173, 'SDK', 'SDK')}
+    boards = get_boards()
+    # boards = {'172': Board(172, 'AD-Spend', 'AD-Spend')}
 
     # 2. for each board get all active sprints and their corresponded tickets
     for board_id in boards:
@@ -44,8 +44,7 @@ def copy_jira_tickets_to_teamgantt():
 def update_tickets_in_teamgantt(need_to_update_tickets):
     for ticket in need_to_update_tickets:
         teamgantt_client.update_task(ticket)
-        postgreSql.update_ticket_timestamp(str(ticket.ticket_jira_id), str(ticket.ticket_jira_last_update))
-
+        postgreSql.update_ticket(str(ticket.ticket_jira_id), ticket)
 
 def add_new_tickets_to_teamgantt(new_tickets):
     teamgantt_client.update_resources()
@@ -87,11 +86,13 @@ def compare_with_db(boards):
 
 def write_tickets_to_csv(teamgantt_tickets):
     with open('gantt_ticket.csv', mode='w') as gantt_csv:
-        teamgantt_ticket_writer = csv.writer(gantt_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        teamgantt_ticket_writer = csv.writer(gantt_csv, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for teamgantt_ticket in teamgantt_tickets:
             teamgantt_ticket_writer.writerow(
-                [teamgantt_ticket.ticket_jira_id, teamgantt_ticket.teamgantt_id,
-                 teamgantt_ticket.ticket_jira_last_update])
+                [str(teamgantt_ticket.ticket_jira_id), str(teamgantt_ticket.teamgantt_id),
+                 str(teamgantt_ticket.ticket_jira_last_update), str(teamgantt_ticket.ticket_summary), str(teamgantt_ticket.team_name),
+                 str(teamgantt_ticket.ticket_status), str(teamgantt_ticket.ticket_type), str(teamgantt_ticket.epic),
+                 str(teamgantt_ticket.ticket_estimation_time), str(teamgantt_ticket.assignee)])
 
 
 def get_boards():

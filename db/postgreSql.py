@@ -51,7 +51,7 @@ def write_ticket_to_db(ticket):
 def copy_csv_into_db():
     conn, cur, table_name = connect_to_db()
     with open('gantt_ticket.csv', mode='r') as gantt_csv:
-        cur.copy_from(gantt_csv, table_name, sep=',')
+        cur.copy_from(gantt_csv, table_name, sep=';')
         conn.commit()
 
     cur.close()
@@ -63,6 +63,21 @@ def update_ticket_timestamp(jira_id, timestamp):
     conn, cur, table_name = connect_to_db()
     cur.execute(
         "UPDATE {} SET jira_last_update = %s WHERE jira_id = %s".format(table_name), (timestamp, jira_id))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+def update_ticket(param, ticket):
+    conn, cur, table_name = connect_to_db()
+    cur.execute(
+        "UPDATE {} SET jira_last_update = %s, name = %s, team = %s, status = %s, type = %s, epic = %s, "
+        "estimation_time = %s, assignee = %s WHERE jira_id = %s").format(
+        table_name), (
+        str(ticket.ticket_jira_last_update), str(ticket.ticket_summary), str(ticket.team_name),
+        str(ticket.ticket_status),
+        str(ticket.ticket_type), str(ticket.epic), str(ticket.ticket_estimation_time), str(ticket.assignee))
     conn.commit()
 
     cur.close()

@@ -26,7 +26,8 @@ def build_jira_ticket(issue_obj, team_name, jira_client):
         ticket_last_updated = utils.get_timestamp(issue_obj['fields']['updated'])
         if 'parent' in issue_obj['fields']:
             parent_type = issue_obj['fields']['parent']['fields']['issuetype']['name']
-            if parent_type.lower() == 'technical story':
+            # Skip on subtasks
+            if parent_type.lower() == 'technical story' or parent_type.lower() == 'user story':
                 return None
 
             ticket_parent = issue_obj['fields']['parent']['fields']['summary']
