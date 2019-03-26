@@ -116,7 +116,7 @@ dmypy.json
 .pyre/
 
 # Config file
-config/
+config/config.yaml
 \.idea/workspace\.xml
 
 \.vscode/settings\.json
