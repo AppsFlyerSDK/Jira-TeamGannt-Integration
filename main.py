@@ -1,11 +1,11 @@
-import utils.time_logger as logger
-from config import config
-from utils import jira_utils, report
-from models.board import *
-from models.sprint import *
-from clients.jira_client import *
-from clients.teamgantt_client import *
-from db import postgreSql
+import time_logger as logger
+import config
+import jira_utils, report
+from board import *
+from sprint import *
+from jira_client import *
+from teamgantt_client import *
+import postgreSql
 import csv
 import sys
 
@@ -16,8 +16,8 @@ reporter = report.Report()
 def copy_jira_tickets_to_teamgantt():
     time_logger = logger.TimeLogger()  # log the time it takes to get all the boards
     # 1. get all boards
-    boards = get_boards()
-    # boards = {'172': Board(172, 'AD-Spend', 'AD-Spend')}
+    # boards = get_boards()
+    boards = {'173': Board(173, 'SDK', 'SDK')}
 
     # 2. for each board get all active sprints and their corresponded tickets
     for board_id in boards:

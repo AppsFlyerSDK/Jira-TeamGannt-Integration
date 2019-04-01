@@ -1,6 +1,6 @@
 import requests
 import json
-from utils import utils
+import utils
 
 
 class Report:

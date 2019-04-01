@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from utils import utils
+import utils
 
 
 def create_task_payload(ticket, parent_group_id=-1, project_id=-1):

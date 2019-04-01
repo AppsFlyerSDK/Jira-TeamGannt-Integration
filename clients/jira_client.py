@@ -1,5 +1,5 @@
 import auth
-from utils import utils
+import utils
 
 BASE_URL = "https://appsflyer.atlassian.net"
 

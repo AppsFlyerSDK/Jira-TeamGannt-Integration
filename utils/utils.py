@@ -4,13 +4,13 @@ import requests
 import math
 import main
 import datetime
-from utils.logger import *
+from logger import *
 
 reporter = main.reporter
 
 
 def get_json(resp):
-    content = str(resp.content, "utf-8")
+    content = str(resp.content)
     return json.loads(content)
 
 

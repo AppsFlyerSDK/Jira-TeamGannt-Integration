@@ -1,8 +1,8 @@
 import auth
-import utils.utils as utils
-import config.config as config
-from models.resource import *
-from utils import teamgantt_utils
+import utils
+import config
+from resource import *
+import teamgantt_utils
 
 BASE_URL = "https://api.teamgantt.com/v1"
 
