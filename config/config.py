@@ -1,5 +1,6 @@
 import yaml
 from pathlib import Path
+import os
 
 # Config class. Gets all the required configuration parameters from our config.yaml file,
 # and place them inside the corresponded variables

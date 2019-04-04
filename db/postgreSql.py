@@ -71,13 +71,12 @@ def update_ticket_timestamp(jira_id, timestamp):
 
 def update_ticket(param, ticket):
     conn, cur, table_name = connect_to_db()
-    cur.execute(
-        "UPDATE {} SET jira_last_update = %s, name = %s, team = %s, status = %s, type = %s, epic = %s, "
-        "estimation_time = %s, assignee = %s WHERE jira_id = %s").format(
-        table_name), (
-        str(ticket.ticket_jira_last_update), str(ticket.ticket_summary), str(ticket.team_name),
+    query_str = "UPDATE {} SET jira_last_update = '{}', name = '{}', team = '{}', status = '{}', type = '{}', epic = '{}', estimation_time = '{}', assignee = '{}' WHERE jira_id = '{}'".format(
+        table_name, str(ticket.ticket_jira_last_update), str(ticket.ticket_summary), str(ticket.team_name),
         str(ticket.ticket_status),
-        str(ticket.ticket_type), str(ticket.epic), str(ticket.ticket_estimation_time), str(ticket.assignee))
+        str(ticket.ticket_type), str(ticket.epic), str(ticket.ticket_estimation_time), str(ticket.assignee), str(ticket.ticket_jira_id))
+
+    cur.execute(query_str)
     conn.commit()
 
     cur.close()

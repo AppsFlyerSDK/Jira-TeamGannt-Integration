@@ -1,8 +1,7 @@
 import auth
-import utils.utils as utils
 import config.config as config
 from models.resource import *
-from utils import teamgantt_utils
+from utils import teamgantt_utils, utils
 
 BASE_URL = "https://api.teamgantt.com/v1"
 
@@ -87,6 +86,9 @@ class TeamGanttClient:
         # Todo - update task assignee
         get_task_url = BASE_URL + "/tasks/" + task.teamgantt_id
         json_obj, status_code = utils.execute_url(url=get_task_url, method="get", headers=self.headers)
+
+        if 'resources' not in json_obj:
+            return
 
         if task.get_assignee() == json_obj['resources'][0]['name']:
             return

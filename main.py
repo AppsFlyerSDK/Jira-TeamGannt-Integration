@@ -17,7 +17,7 @@ def copy_jira_tickets_to_teamgantt():
     time_logger = logger.TimeLogger()  # log the time it takes to get all the boards
     # 1. get all boards
     boards = get_boards()
-    # boards = {'172': Board(172, 'AD-Spend', 'AD-Spend')}
+    # boards = {'173': Board(173, 'SDK', 'SDK')}
 
     # 2. for each board get all active sprints and their corresponded tickets
     for board_id in boards:
@@ -171,7 +171,7 @@ def extract_boards_from_json(obj, boards_dict):
     boards_json = obj['values']
     for board_json in boards_json:
         board_id = board_json['id']
-        if board_id == 168 or board_id == 188:
+        if board_id == 168 or board_id == 188 or board_id == 181:
             continue  # Ignore this specific board
 
         board_name = board_json['name']
