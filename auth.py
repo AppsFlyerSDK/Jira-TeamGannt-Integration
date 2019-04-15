@@ -1,6 +1,5 @@
-import yaml
 import base64
-import config.config as config
+import config
 
 
 # return the base64 encoded string (email:token)
@@ -9,7 +8,7 @@ def get_jira_auth_token():
     email = config.jira_email
 
     auth_str = email + ":" + token
-    return str(base64.encodebytes(str.encode(auth_str)), "utf-8")
+    return str(base64.b64encode(str.encode(auth_str)))
 
 
 def get_teamgantt_auth_token():

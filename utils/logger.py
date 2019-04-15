@@ -1,5 +1,5 @@
 from datetime import datetime
-from utils import utils
+import utils
 
 logger_list = []
 

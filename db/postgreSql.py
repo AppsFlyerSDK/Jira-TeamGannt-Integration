@@ -1,6 +1,6 @@
 import psycopg2
 
-import config.config as config
+import config
 import constants
 
 
@@ -37,21 +37,10 @@ def get_tickets_from_db():
     return tickets_ids
 
 
-def write_ticket_to_db(ticket):
-    conn, cur, table_name = connect_to_db()
-    cur.execute(
-        "INSERT INTO {} ({},{},{}) VALUES ({},{},{})".format(table_name, constants.jira_id, constants.teamgantt_id,
-                                                             constants.jira_last_update, ticket.ticket_id, 1,
-                                                             ticket.ticket_last_update))
-    print("{} inserted".format(ticket.ticket_key))
-    cur.close()
-    conn.close()
-
-
 def copy_csv_into_db():
     conn, cur, table_name = connect_to_db()
     with open('gantt_ticket.csv', mode='r') as gantt_csv:
-        cur.copy_from(gantt_csv, table_name, sep=';')
+        cur.copy_from(gantt_csv, table_name, sep=',')
         conn.commit()
 
     cur.close()

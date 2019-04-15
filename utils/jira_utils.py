@@ -1,5 +1,5 @@
-from models.ticket import *
-from utils import utils
+from ticket import *
+import utils
 import constants
 
 
